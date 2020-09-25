@@ -1,0 +1,29 @@
+service: listener
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  region: ap-northeast-2
+  profile: default
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:GetItem"
+        - "dynamodb:PutItem"
+        - "dynamodb:Scan"
+        - "sqs:SendMessage"
+      Resource: 
+        - "arn:aws:dynamodb:ap-northeast-2:474083796669:table/goodoc-untact-scrapper-selectors"
+        - "arn:aws:sqs:ap-northeast-2:474083796669:selector-queue.fifo"
+functions:
+  listener:
+    handler: src/index.listener
+    events: 
+      - http:
+          path: listener
+          method: get
+plugins:
+  - serverless-offline
+  - serverless-plugin-typescript

@@ -1,0 +1,29 @@
+service: scrapper
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  region: ap-northeast-2
+  profile: default
+  memorySize: 768
+  timeout: 30
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "sqs:*"
+        - "dynamodb:*"
+      Resource:
+        - "arn:aws:sqs:ap-northeast-2:474083796669:selector-queue.fifo"
+        - "arn:aws:dynamodb:ap-northeast-2:474083796669:table/goodoc-untact-scrapper-scrapped"
+functions:
+  scrapper:
+    handler: src/index.scrapper
+    events: 
+      - http:
+          path: scrapper
+          method: get
+plugins:
+  - serverless-offline
+  - serverless-plugin-typescript
