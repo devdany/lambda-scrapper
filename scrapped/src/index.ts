@@ -15,7 +15,11 @@ const findBySelectorId = (selectorId: string) => {
       if (err) {
         reject(err)
       } else {
-        resolve(data)
+        if (data && data.Items && data.Items.length > 0) {
+          resolve(data.Items[0])
+        } else {
+          resolve([])
+        }
       }
     })
   })
@@ -23,7 +27,7 @@ const findBySelectorId = (selectorId: string) => {
 
 export const scrapped = async (event: any) => {
   const { pathParameters } = event
-  let response = 'no-data'
+  let response = '[]'
   if (pathParameters && pathParameters.selectorId) {
     const data = await findBySelectorId(pathParameters.selectorId)
     response = JSON.stringify(data)
