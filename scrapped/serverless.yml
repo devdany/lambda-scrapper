@@ -1,4 +1,4 @@
-service: scrapped
+service: getScrapped
 frameworkVersion: '2'
 provider:
   name: aws
@@ -9,14 +9,16 @@ provider:
     - Effect: "Allow"
       Action:
         - "dynamodb:*"
-      Resource: "arn:aws:dynamodb:ap-northeast-2:474083796669:table/goodoc-untact-scrapper-scrapped"
+      Resource:
+        - "arn:aws:dynamodb:ap-northeast-2:474083796669:table/goodoc-scrapper-scrapper"
+        - "arn:aws:dynamodb:ap-northeast-2:474083796669:table/goodoc-scrapper-user"
 
 functions:
   scrapped:
     handler: src/index.scrapped
     events: 
       - http:
-          path: scrapped/{selectorId}
+          path: scrapped/{scrapperId}
           method: get
 plugins:
   - serverless-offline

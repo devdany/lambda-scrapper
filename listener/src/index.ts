@@ -3,21 +3,22 @@ import AWS from 'aws-sdk'
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' })
 const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10'})
 
-const TABLE_NAME = 'goodoc-untact-scrapper-selectors'
+const TABLE_NAME = 'goodoc-scrapper-scrapper'
 const SQS_URL = 'https://sqs.ap-northeast-2.amazonaws.com/474083796669/selector-queue.fifo'
 const GROUP_ID = 'selectorqueue'
-type Selector = {
-  id: string
+type Scrapper = {
+  scrapperId: string
   url: string
   schedules: string[]
   attrs: any
+  scrapped: any[]
 }
 
 // 매분, 매 시간, 하루 한번
 
 
 
-const findSelectors = (): Promise<Selector[]> => {
+const findAllScrapper = (): Promise<Scrapper[]> => {
   return new Promise((resolve, reject) => {
     docClient.scan({
       TableName: TABLE_NAME
@@ -28,7 +29,7 @@ const findSelectors = (): Promise<Selector[]> => {
         if (!result) {
           resolve([])
         } else {
-          resolve(<Selector[]>result.Items)
+          resolve(<Scrapper[]>result.Items)
         }
       }
     })
@@ -54,16 +55,21 @@ const scheduleChecker = (schedules: string[]) => {
       const scheduleMin = schedule.slice(0, -1)
       isPass = Number(scheduleMin) === minutes
     }
+
+    if (isPass) {
+      break
+    }
   }
+
   return isPass
 }
 
-const pushToSQS = (selector: Selector) => {
+const pushToSQS = (scrapper: Scrapper) => {
   return new Promise((resolve, reject) => {
     const params = {
       QueueUrl: SQS_URL,
-      MessageDeduplicationId: selector.id,
-      MessageBody: JSON.stringify(selector),
+      MessageDeduplicationId: scrapper.scrapperId,
+      MessageBody: JSON.stringify(scrapper),
       DelaySeconds: 0,
       MessageGroupId: GROUP_ID,
     }
@@ -79,14 +85,13 @@ const pushToSQS = (selector: Selector) => {
 }
 
 export const listener = async () => {
-  const selectors = await findSelectors()
-  for (const selector of selectors) {
-    console.log(selector)
-    if (!scheduleChecker(selector.schedules)) {
+  const scrappers = await findAllScrapper()
+  for (const scrapper of scrappers) {
+    if (!scheduleChecker(scrapper.schedules)) {
       continue
     }
     // enqueue
-    await pushToSQS(selector)
+    await pushToSQS(scrapper)
   }
   return {
     statusCode: 200,

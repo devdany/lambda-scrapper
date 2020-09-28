@@ -1,27 +1,31 @@
 import AWS from 'aws-sdk'
-import { v4 as generateId } from 'uuid'
 import cheerio from 'cheerio'
 import chromium from 'chrome-aws-lambda'
 
 const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10'})
-const TABLE_NAME = 'goodoc-untact-scrapper-scrapped'
+const TABLE_NAME = 'goodoc-scrapper-scrapper'
 
-type Selector = {
-  id: string
+type Scrapper = {
+  scrapperId: string
   url: string
   schedules: string[]
   attrs: any
+  scrapped: any[]
 }
 
-const insertDB = (selectorId: string, scrapped: any) => {
+
+const updateScrapped = (scrapperId: string, scrapped: any) => {
   return new Promise((resolve, reject) => {
-    docClient.put({
+    docClient.update({
       TableName: TABLE_NAME,
-      Item: {
-        id: generateId(),
-        scrapped: scrapped,
-        selector_id: selectorId
-      }
+      Key: {
+        scrapperId: scrapperId
+      },
+      UpdateExpression: 'set scrapped = :sc',
+      ExpressionAttributeValues: {
+        ':sc': scrapped,
+      },
+      ReturnValues:"UPDATED_NEW"
     }, (err, data) => {
       if (err) {
         reject(err)
@@ -45,7 +49,7 @@ const insertDB = (selectorId: string, scrapped: any) => {
 export const scrapper = async(event: any, context: any, callback: any) => {
   try {
     if (event.Records && event.Records.length > 0 && event.Records[0].body) {
-      const { id, url, attrs } = <Selector>JSON.parse(event.Records[0].body)
+      const { scrapperId, url, attrs } = <Scrapper>JSON.parse(event.Records[0].body)
       
       const browser = await chromium.puppeteer.launch({
         args: chromium.args,
@@ -67,7 +71,7 @@ export const scrapper = async(event: any, context: any, callback: any) => {
         scrapped[key] = $(selector).text()
       }
 
-      await insertDB(id, scrapped)
+      await updateScrapped(scrapperId, scrapped)
       
       return {
         statusCode: 200,

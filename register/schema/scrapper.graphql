@@ -1,0 +1,24 @@
+type Scrapper {
+  scrapperId: ID!
+  user: User!
+  url: String!
+  attrs: AWSJSON!
+  schedules: [String!]!
+  scrapped: AWSJSON!
+  createdAt: AWSDateTime!
+}
+
+input CreateInputScrapper {
+  url: String!
+  userId: ID!
+  attrs: AWSJSON!
+  schedules: [String!]!
+}
+
+type Query {
+  getScrapper(scrapperId: ID!): Scrapper
+}
+
+type Mutation {
+  createScrapper(input: CreateInputScrapper!): Scrapper
+}
