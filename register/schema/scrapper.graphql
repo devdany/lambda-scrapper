@@ -1,6 +1,6 @@
 type Scrapper {
   scrapperId: ID!
-  user: User!
+  userId: String!
   url: String!
   attrs: AWSJSON!
   schedules: [String!]!
@@ -10,13 +10,14 @@ type Scrapper {
 
 input CreateInputScrapper {
   url: String!
-  userId: ID!
+  userId: String!
   attrs: AWSJSON!
   schedules: [String!]!
 }
 
 type Query {
   getScrapper(scrapperId: ID!): Scrapper
+  getScrappers(userId: String!): [Scrapper!]!
 }
 
 type Mutation {

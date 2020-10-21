@@ -6,7 +6,7 @@ provider:
   name: aws
   runtime: nodejs12.x
   stage: dev
-  profile: dany
+  profile: default
   region: ap-northeast-2
 
 plugins:
@@ -15,40 +15,18 @@ plugins:
 custom:
   appSync:
     name: goodoc-untact-scrapper-v2
-    authenticationType: AMAZON_COGNITO_USER_POOLS
-    userPoolConfig:
-      awsRegion: ap-northeast-2
-      defaultAction: ALLOW
-      userPoolId: { Ref: ScrapperUserPool }
+    authenticationType: API_KEY
     region: ap-northeast-2
     mappingTemplatesLocation: resolvers
     mappingTemplates:
-      # User
-      - 
-        type: User
-        field: scrappers
-        dataSource: Scrapper
-      -
-        type: Query
-        field: getUserList
-        dataSource: User
-      - 
-        type: Query
-        field: getUser
-        dataSource: User
-      - 
-        type: Mutation
-        field: createUser
-        dataSource: User
-
       # Scrapper
-      - 
-        type: Scrapper
-        field: user
-        dataSource: User
       -
         type: Query
         field: getScrapper
+        dataSource: Scrapper
+      -
+        type: Query
+        field: getScrappers
         dataSource: Scrapper
       - 
         type: Mutation
@@ -56,24 +34,10 @@ custom:
         dataSource: Scrapper
         
     schema:
-      - schema/user.graphql
       - schema/scrapper.graphql
     
     #serviceRole: # if not provided, a default role is generated
     dataSources:
-      - type: AMAZON_DYNAMODB
-        name: User
-        description: User Table
-        config:
-          tableName: goodoc-scrapper-user
-          iamRoleStatements:
-            - Effect: Allow
-              Action:
-                - dynamodb:*
-              Resource:
-                - arn:aws:dynamodb:${self:provider.region}:*:table/goodoc-scrapper-user
-                - arn:aws:dynamodb:${self:provider.region}:*:table/goodoc-scrapper-user/*
-
       - type: AMAZON_DYNAMODB
         name: Scrapper
         description: Scrapper Table
@@ -89,42 +53,6 @@ custom:
 
 resources:
   Resources:
-    ScrapperUserPool:
-      Type: AWS::Cognito::UserPool
-      DeletionPolicy: Retain
-      Properties:
-        UserPoolName: ScrapperUserPool
-        AutoVerifiedAttributes:
-          - email
-        Policies:
-          PasswordPolicy:
-            MinimumLength: 8
-        UsernameAttributes:
-          - email
-
-    AppSyncTutorialUserPoolWebClient:
-      Type: AWS::Cognito::UserPoolClient
-      Properties:
-          ClientName: Web
-          GenerateSecret: false
-          RefreshTokenValidity: 30
-          UserPoolId: { Ref: ScrapperUserPool }
-
-
-    UserTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: goodoc-scrapper-user
-        KeySchema:
-          -
-            AttributeName: userId
-            KeyType: HASH
-        AttributeDefinitions:
-          -
-            AttributeName: userId
-            AttributeType: S
-        BillingMode: PAY_PER_REQUEST
-
     ScrapperTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -137,19 +65,5 @@ resources:
           -
             AttributeName: scrapperId
             AttributeType: S
-          -
-            AttributeName: userId
-            AttributeType: S
         BillingMode: PAY_PER_REQUEST
 
-        # GSI - userId
-        GlobalSecondaryIndexes:
-          -
-            IndexName: userId-index
-            KeySchema:
-              - AttributeName: userId
-                KeyType: HASH
-              - AttributeName: scrapperId
-                KeyType: RANGE
-            Projection:
-              ProjectionType: ALL

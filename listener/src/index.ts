@@ -4,7 +4,7 @@ const sqs = new AWS.SQS({ apiVersion: '2012-11-05' })
 const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10'})
 
 const TABLE_NAME = 'goodoc-scrapper-scrapper'
-const SQS_URL = 'https://sqs.ap-northeast-2.amazonaws.com/474083796669/selector-queue.fifo'
+const SQS_URL = 'https://sqs.ap-northeast-2.amazonaws.com/088944302557/selector-queue.fifo'
 const GROUP_ID = 'selectorqueue'
 type Scrapper = {
   scrapperId: string
@@ -46,7 +46,9 @@ const scheduleChecker = (schedules: string[]) => {
     if (schedule === 'em') {
       // 스케줄러가 1분에 한번 돌거기 때문에 매번 enqueue 해주면 됨
       isPass = true
-    } else if (schedule.endsWith('h')) {
+    } else if (schedule === 'eh') {
+      isPass = minutes === 0
+    } else if (schedule.endsWith('h') && minutes === 0) {
       // 하루 한번, 매 시마다
       const scheduleHour = schedule.slice(0, -1)
       isPass = Number(scheduleHour) === hours

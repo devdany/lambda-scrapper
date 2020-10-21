@@ -15,8 +15,8 @@ provider:
         - "sqs:*"
         - "dynamodb:*"
       Resource:
-        - "arn:aws:sqs:ap-northeast-2:474083796669:selector-queue.fifo"
-        - "arn:aws:dynamodb:ap-northeast-2:474083796669:table/goodoc-scrapper-scrapper"
+        - "arn:aws:sqs:ap-northeast-2:088944302557:selector-queue.fifo"
+        - "arn:aws:dynamodb:ap-northeast-2:088944302557:table/goodoc-scrapper-scrapper"
 functions:
   scrapper:
     handler: src/index.scrapper
