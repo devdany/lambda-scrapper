@@ -50,7 +50,6 @@ export const scrapper = async(event: any, context: any, callback: any) => {
   try {
     if (event.Records && event.Records.length > 0 && event.Records[0].body) {
       const { scrapperId, url, attrs } = <Scrapper>JSON.parse(event.Records[0].body)
-      
       const browser = await chromium.puppeteer.launch({
         args: chromium.args,
         executablePath: await chromium.executablePath,
